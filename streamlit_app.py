@@ -34,7 +34,8 @@ else:
     
     if user == "mpadmin" and passw == "1234":
         st.success("Logged in successfully")
-        st.dataframe(df) # Saari complaints table me
+        st.subheader("All Complaints")
+        st.dataframe(df)
         
         st.subheader("Reply to Complaint")
         idx = st.number_input("Complaint Number", 0, len(df)-1)
@@ -46,6 +47,6 @@ else:
             df.loc[idx, 'Comment'] = comment
             df.to_csv("complaints.csv", index=False)
             st.success("Answer submitted!")
+            st.rerun()
     elif user:
         st.error("Wrong credentials")
-        
