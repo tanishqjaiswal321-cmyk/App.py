@@ -2,30 +2,30 @@ import streamlit as st
 import pandas as pd
 import random
 
-st.set_page_config(page_title="Janata Voice - People's Priorities", layout="wide")
+st.set_page_config(page_title="Janata Voice", layout="wide")
 st.title("🇮🇳 Janata Voice - People's Priorities")
-st.subheader("AI-powered feedback platform for MP Office")
+st.write("AI-powered feedback for MP Office")
 
+# File load
 try:
     df = pd.read_csv("complaints.csv")
 except:
     df = pd.DataFrame(columns=["Category", "Description", "Priority", "Status", "Comment"])
 
+# Sidebar Login
 menu = st.sidebar.selectbox("Login as", ["Citizen", "MP Office"])
 
 if menu == "Citizen":
     st.header("📝 Submit Your Issue")
     category = st.selectbox("Category", ["Road", "Water", "Electricity", "Garbage", "Other"])
     desc = st.text_area("Describe the problem")
-    photo = st.file_uploader("Upload Photo", type=['jpg','png'])
     
     if st.button("Submit Complaint"):
         priority = random.randint(70, 99)
         new_row = {"Category": category, "Description": desc, "Priority": priority, "Status": "Pending", "Comment": ""}
         df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
         df.to_csv("complaints.csv", index=False)
-        st.success(f"Complaint submitted! AI Priority Score: {priority}/100")
-        st.balloons()
+        st.success(f"Submitted! AI Priority: {priority}/100")
 
 else:
     st.header("🔐 MP Office Dashboard")
@@ -33,20 +33,18 @@ else:
     passw = st.text_input("Password", type="password")
     
     if user == "mpadmin" and passw == "1234":
-        st.success("Logged in")
-        st.subheader("All Complaints")
+        st.success("Logged in successfully")
+        st.dataframe(df) # Saari complaints table me
         
-        for i, row in df.iterrows():
-            with st.expander(f"{row['Category']} | Priority: {row['Priority']} | Status: {row['Status']}"):
-                st.write(f"**Issue:** {row['Description']}")
-                new_status = st.selectbox("Update Status", ["Pending", "In Progress", "Resolved"], index=["Pending", "In Progress", "Resolved"].index(row['Status']), key=i)
-                comment = st.text_input("Reply to Citizen", row['Comment'], key=f"c{i}")
-                
-                if st.button("Update", key=f"b{i}"):
-                    df.loc[i, 'Status'] = new_status
-                    df.loc[i, 'Comment'] = comment
-                    df.to_csv("complaints.csv", index=False)
-                    st.success("Updated!")
-                    st.rerun()
+        st.subheader("Reply to Complaint")
+        idx = st.number_input("Complaint Number", 0, len(df)-1)
+        new_status = st.selectbox("Status", ["Pending", "In Progress", "Resolved"])
+        comment = st.text_area("Your Reply")
+        
+        if st.button("Update & Answer"):
+            df.loc[idx, 'Status'] = new_status
+            df.loc[idx, 'Comment'] = comment
+            df.to_csv("complaints.csv", index=False)
+            st.success("Answer submitted!")
     elif user:
         st.error("Wrong credentials")
